@@ -53,7 +53,7 @@ pytest -v
 ## Notes
 
 - Make sure your API keys are valid. 
-- Pinecone index is created [documentation](https://docs.pinecone.io/).
+- Pinecone index is created.
 - The database will be initialized automatically on first run.
 - If you encounter import errors, ensure you are running commands from the project root directory.
 
