@@ -52,10 +52,17 @@ pytest -v
 
 ## Notes
 
-- Make sure your Pinecone index
- is created and your API keys are valid.
+- Make sure your API keys are valid. 
+- Pinecone index is created [documentation](https://docs.pinecone.io/).
 - The database will be initialized automatically on first run.
 - If you encounter import errors, ensure you are running commands from the project root directory.
+
+---
+
+## Links
+
+- [Pinecone documentation](https://docs.pinecone.io/) — Official documentation for Pinecone, a vector database service used in this project for storing and searching embeddings.
+- [OpenAI API documentation](https://platform.openai.com/docs/) — Official documentation for the OpenAI API, used in this project for LLM-based response generation.
 
 ---
 
