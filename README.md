@@ -62,11 +62,13 @@ pytest -v
 ## Project Structure
 
 - `app/` — main application code
+- `app/core` — main core logic
 - `app/db/` — database models and logic
 - `app/llm/` — LLM integration
 - `app/agents/` — agents and business logic
 - `app/gui/` — Streamlit interface
 - `app/evaluation/` — performance evaluation scripts
+- `app/ingest/` — ingest static data logic
 - `tests/` — unit tests
 
 ---
