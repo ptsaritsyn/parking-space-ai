@@ -1,0 +1,10 @@
+
+    === System Performance Evaluation Report ===
+
+    Average Latency: 1.469 sec
+    Latencies: [2.212313175201416, 1.6671032905578613, 1.4919562339782715, 1.810051441192627, 1.5561153888702393, 0.8847548961639404, 1.8057639598846436, 0.6703832149505615, 1.7014708518981934, 1.5492465496063232, 1.0668044090270996, 1.2173206806182861]
+    Throughput: 0.80 requests/sec
+    Accuracy: 75.00%
+
+    Test queries: ['What are the working hours?', 'How much does parking cost?', 'Where is the parking located?', 'How can I book a spot?']
+    
