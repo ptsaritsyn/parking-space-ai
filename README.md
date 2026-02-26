@@ -1,9 +1,3 @@
-
-
-Ось README.md у markdown-форматі без згадки про PYTHONPATH:
-
----
-
 # Parking Space AI Chatbot
 
 ## Installation & Setup
