@@ -69,7 +69,7 @@ pytest -v
 ## Project Structure
 
 - `app/` — main application code
-- `app/core` — main core logic
+- `app/core/` — main core logic
 - `app/db/` — database models and logic
 - `app/llm/` — LLM integration
 - `app/agents/` — agents and business logic
