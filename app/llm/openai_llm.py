@@ -1,6 +1,6 @@
-from . import _BaseLLM
 import os
 import openai
+from . import _BaseLLM
 
 
 class OpenAIClient(_BaseLLM):

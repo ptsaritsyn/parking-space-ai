@@ -30,7 +30,6 @@ def test_baseragpipeline_answer_exception_prints_and_raises(capfd):
     out, _ = capfd.readouterr()
     assert "Error in answer" in out
 
-
 # --- Tests for RAGPipeline ---
 
 @pytest.fixture
@@ -39,7 +38,8 @@ def mock_vector_llm():
     llm = MagicMock()
     return vector_db, llm
 
-@patch("app.core.rag.INFO_PROMPT", "Context: {context} Q: {question}")
+
+@patch("app.core.rag.RAG_INFO_PROMPT", "Context: {context} Q: {question}")
 def test_ragpipeline_answer_success(mock_vector_llm):
     vector_db, llm = mock_vector_llm
     vector_db.search.return_value = [
@@ -56,7 +56,7 @@ def test_ragpipeline_answer_success(mock_vector_llm):
     llm.generate.assert_called_once_with("Context: doc1 doc2 Q: What is AI?")
 
 
-@patch("app.core.rag.INFO_PROMPT", "Context: {context} Q: {question}")
+@patch("app.core.rag.RAG_INFO_PROMPT", "Context: {context} Q: {question}")
 def test_ragpipeline_answer_empty_docs(mock_vector_llm):
     vector_db, llm = mock_vector_llm
     vector_db.search.return_value = []
@@ -75,3 +75,48 @@ def test_ragpipeline_answer_exception_propagation(mock_vector_llm):
     rag = RAGPipeline(vector_db, llm)
     with pytest.raises(Exception):
         rag.answer("fail")
+
+
+@patch("app.core.rag.RAG_INFO_PROMPT", "Context: {context} Q: {question}")
+def test_ragpipeline_cache_hit_and_miss():
+    vector_db = MagicMock()
+    llm = MagicMock()
+    rag = RAGPipeline(vector_db, llm)
+    query = "What is cache?"
+
+    vector_db.search.return_value = [{'content': 'doc1'}]
+    llm.generate.return_value = "answer1"
+    result1 = rag.answer(query)
+    assert result1 == "answer1"
+
+    vector_db.search.assert_called_once_with(query)
+    llm.generate.assert_called_once_with("Context: doc1 Q: What is cache?")
+    rag._cache[query] = "cached answer"
+
+    vector_db.search.reset_mock()
+    llm.generate.reset_mock()
+
+    result2 = rag.answer(query)
+    assert result2 == "cached answer"
+
+    vector_db.search.assert_not_called()
+    llm.generate.assert_not_called()
+
+
+@patch("app.core.rag.RAG_INFO_PROMPT", "Context: {context} Q: {question}")
+def test_ragpipeline_cache_isolation():
+    vector_db = MagicMock()
+    llm = MagicMock()
+    rag = RAGPipeline(vector_db, llm)
+    rag._cache["q1"] = "a1"
+    rag._cache["q2"] = "a2"
+
+    assert rag.answer("q1") == "a1"
+    assert rag.answer("q2") == "a2"
+
+    vector_db.search.return_value = [{'content': 'docX'}]
+    llm.generate.return_value = "aX"
+    assert rag.answer("qX") == "aX"
+
+    vector_db.search.assert_called_once_with("qX")
+    llm.generate.assert_called_once_with("Context: docX Q: qX")

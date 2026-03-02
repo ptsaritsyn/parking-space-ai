@@ -1,6 +1,8 @@
 import os
+
 from pinecone import Pinecone, ServerlessSpec
 from sentence_transformers import SentenceTransformer
+
 from . import _BaseVectorDB
 
 

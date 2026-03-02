@@ -1,3 +1,4 @@
+from cachetools import LRUCache
 import streamlit as st
 from app.gui import _BaseGUI
 
@@ -19,6 +20,11 @@ class ChatGUI(_BaseGUI):
 
         if "chat_history" not in st.session_state:
             st.session_state.chat_history = []
+
+        if "rag_cache" not in st.session_state:
+            st.session_state["rag_cache"] = LRUCache(maxsize=128)
+
+        self.agent.rag._cache = st.session_state["rag_cache"]
 
         for msg, is_user in st.session_state.chat_history:
             if is_user:
