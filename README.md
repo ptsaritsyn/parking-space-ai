@@ -77,6 +77,7 @@ pytest -v
 - `app/gui/` — Streamlit interface
 - `app/evaluation/` — performance evaluation scripts
 - `app/ingest/` — ingest static data logic
+- `app/service/` — MCP server and client
 - `tests/` — unit tests
 
 ---
