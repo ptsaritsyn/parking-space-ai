@@ -1,4 +1,5 @@
 import json
+import os
 
 import streamlit as st
 from pydantic import ValidationError
@@ -8,6 +9,7 @@ from app.agents.admin_agent import AdminAgent
 from app.core.schemas import ReservationRequest
 from app.db.models import User, Reservation, Spot
 from app.llm.prompts import RESERVATION_AGENT_EXTRACTION_PROMPT
+from app.service.mcp_client import MCPClientWrapper, MCPAsyncStdioClient
 
 
 class ChatAgent(_BaseAgent):
@@ -16,6 +18,9 @@ class ChatAgent(_BaseAgent):
         self.guard = guard
         self.llm = llm
         self.sql_db = sql_db
+        self.mcp_access_token = os.getenv("MCP_ACCESS_TOKEN")
+        self.mcp_client = MCPClientWrapper(MCPAsyncStdioClient)
+        self.mcp_client.connect()
 
     def _run(self, message):
         return self._handle_user_message(message)
@@ -62,7 +67,8 @@ class ChatAgent(_BaseAgent):
                 "car_number": validated_data.car_number,
                 "reservation_from": str(validated_data.reservation_from),
                 "reservation_to": str(validated_data.reservation_to),
-                "spot_number": spot.number
+                "spot_number": spot.number,
+                "token": self.mcp_access_token
             }
 
             # Human-in-the-loop using LangChain AdminAgent
@@ -82,6 +88,13 @@ class ChatAgent(_BaseAgent):
                 spot = self._update_spot(spot)
                 if not spot:
                     return "Reservation spot error. Please clarify the reason via support@mail.com"
+
+                # Call tool from MCP server
+                written_storage_result = self.mcp_client.call_tool(
+                    "write_reservation_to_file",
+                    **reservation_data
+                )
+                print('written_storage_result', written_storage_result.content[0].text)
 
                 reservation_info = (
                     f"Reservation successful for {validated_data.name} {validated_data.surname}, " 

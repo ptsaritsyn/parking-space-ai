@@ -8,3 +8,4 @@ sentence-transformers==5.2.3
 pytest==9.0.2
 langchain==1.2.10
 langchain-openai==1.1.10
+mcp==1.26.0

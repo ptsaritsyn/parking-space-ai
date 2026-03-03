@@ -24,6 +24,7 @@ OPENAI_API_KEY=<your-api-key>
 DB_URL=sqlite:///./app/db/parking.db
 PINECONE_API_KEY=<your-api-key>
 PINECONE_INDEX=parking-static
+MCP_ACCESS_TOKEN=<any-string>
 ```
 
 ---
