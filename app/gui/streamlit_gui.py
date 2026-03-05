@@ -12,7 +12,7 @@ class ChatGUI(_BaseGUI):
             yield char
 
     def _run(self):
-        st.title("Parking Chatbot")
+        st.title("AI Parking Assistant ")
 
         if st.button("🗑️ Remove Chat"):
             st.session_state.chat_history = []

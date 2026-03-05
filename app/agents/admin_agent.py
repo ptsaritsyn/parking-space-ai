@@ -28,7 +28,7 @@ class AdminAgent(_BaseAgent):
             return "refuse"
 
     def _run(self, reservation_data: str) -> str:
-        model = ChatOpenAI(model="gpt-3.5-turbo", api_key=os.getenv("OPENAI_API_KEY"))
+        model = ChatOpenAI(model="gpt-3.5-turbo", api_key=os.getenv("OPENAI_API_KEY"), temperature=0)
         tools = [self.admin_confirmation]
         agent = create_agent(
             model,

@@ -2,20 +2,26 @@
 
 ## Installation & Setup
 
-### 1. Create a virtual environment
+### 1. Python
+
+```bash
+version == 3.11
+```
+
+### 2. Create a virtual environment
 
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-### 2. Install dependencies
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Set environment variables
+### 4. Set environment variables
 
 Create a `.env` file in the project root with the following content (replace `<your-api-key>`):
 
@@ -46,7 +52,13 @@ python -m app.evaluation.performance
 ### 3. Run unit tests
 
 ```bash
-pytest -v
+pytest -v --ignore=tests/integration
+```
+
+### 4. Run integration tests
+
+```bash
+pytest tests/integration/test_chat_agent_integration.py -s
 ```
 
 ---
@@ -62,7 +74,7 @@ pytest -v
 
 ## Links
 
-- [Pinecone documentation](https://docs.pinecone.io/) — Official documentation for Pinecone, a vector database service used in this project for storing and searching embeddings.
+- [Pinecone API documentation](https://docs.pinecone.io/) — Official documentation for Pinecone, a vector database service used in this project for storing and searching embeddings.
 - [OpenAI API documentation](https://platform.openai.com/docs/) — Official documentation for the OpenAI API, used in this project for LLM-based response generation.
 
 ---
@@ -78,6 +90,11 @@ pytest -v
 - `app/evaluation/` — performance evaluation scripts
 - `app/ingest/` — ingest static data logic
 - `app/service/` — MCP server and client
-- `tests/` — unit tests
+- `app/orchestration/` — LangGraph orchestration
+- `tests/` — unit and integration tests
+- `docs/` — documentation
 
----
+
+## Orchestration workflow graph
+
+![Orchestration Graph](docs/images/orchestration_graph.png)

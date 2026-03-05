@@ -2,13 +2,11 @@ import json
 import os
 
 import streamlit as st
-from pydantic import ValidationError
 
 from app.agents import _BaseAgent
-from app.agents.admin_agent import AdminAgent
-from app.core.schemas import ReservationRequest
 from app.db.models import User, Reservation, Spot
-from app.llm.prompts import RESERVATION_AGENT_EXTRACTION_PROMPT
+from app.orchestration.graph import ReservationGraph
+from app.orchestration.state import State
 from app.service.mcp_client import MCPClientWrapper, MCPAsyncStdioClient
 
 
@@ -21,9 +19,14 @@ class ChatAgent(_BaseAgent):
         self.mcp_access_token = os.getenv("MCP_ACCESS_TOKEN")
         self.mcp_client = MCPClientWrapper(MCPAsyncStdioClient)
         self.mcp_client.connect()
+        self.graph = ReservationGraph(self)
 
     def _run(self, message):
-        return self._handle_user_message(message)
+        state: State = {
+            "graph_state": {"message": message}
+        }
+        result = self.graph.invoke(state)
+        return result["graph_state"].get("response", "")
 
     def _check_llm_response(self, llm_response):
         try:
@@ -40,76 +43,6 @@ class ChatAgent(_BaseAgent):
         st.write(f"**Reservation to:** {reservation_data['reservation_to']}")
         st.write(f"**Spot number:** {reservation_data['spot_number']}")
         st.write(f"Waiting for administrator confirmation...")
-
-    def _handle_user_message(self, message: str) -> str:
-        if "reserve" in message.lower():
-            prompt = RESERVATION_AGENT_EXTRACTION_PROMPT.format(message=message)
-            llm_response = self.llm.generate(prompt)
-            data = self._check_llm_response(llm_response)
-
-            try:
-                validated_data = ReservationRequest(**data)
-            except ValidationError as e:
-                example_message = (
-                    "Please fill all necessary information for reservation using this example:"
-                    "\n`John Smith AA1234BB 2026-04-19T10:10:00 2026-04-19T11:10:00 reserve`"
-                )
-                return example_message
-
-            # Check free spots
-            spot = self.sql_db.get(Spot, status="free")
-            if not spot:
-                return "Sorry, there are no available spots."
-
-            reservation_data = {
-                "name": validated_data.name,
-                "surname":  validated_data.surname,
-                "car_number": validated_data.car_number,
-                "reservation_from": str(validated_data.reservation_from),
-                "reservation_to": str(validated_data.reservation_to),
-                "spot_number": spot.number,
-                "token": self.mcp_access_token
-            }
-
-            # Human-in-the-loop using LangChain AdminAgent
-            admin_agent = AdminAgent()
-            self.render_waiting_block(reservation_data)
-            admin_response = admin_agent.run(json.dumps(reservation_data))
-
-            if admin_response == "confirm":
-                user = self._create_user(validated_data)
-                if not user:
-                    return "Reservation with this car number already exist."
-
-                reservation = self._create_reservation(user, validated_data, spot)
-                if not reservation:
-                    return "Reservation error. Please clarify the reason via support@mail.com"
-
-                spot = self._update_spot(spot)
-                if not spot:
-                    return "Reservation spot error. Please clarify the reason via support@mail.com"
-
-                # Call tool from MCP server
-                written_storage_result = self.mcp_client.call_tool(
-                    "write_reservation_to_file",
-                    **reservation_data
-                )
-                print('written_storage_result', written_storage_result.content[0].text)
-
-                reservation_info = (
-                    f"Reservation successful for {validated_data.name} {validated_data.surname}, " 
-                    f"car {validated_data.car_number}, from {validated_data.reservation_from} "
-                    f"to {validated_data.reservation_to} spot number {spot.number}."
-                )
-                return reservation_info
-
-            else:
-                return "Sorry, your reservation was refused by the administrator."
-
-        else:
-            response = self.rag.answer(message)
-            safe_response = self.guard.filter(response)
-            return safe_response
 
     def _create_user(self, data):
         user = self.sql_db.get(
@@ -138,6 +71,13 @@ class ChatAgent(_BaseAgent):
 
         if reservation:
             return reservation
+        return None
+
+    def _get_spot(self, status):
+        spot = self.sql_db.get(Spot, status=status)
+
+        if spot:
+            return spot
         return None
 
     def _update_spot(self, spot):
