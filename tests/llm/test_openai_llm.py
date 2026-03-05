@@ -1,5 +1,8 @@
 import pytest
 from unittest.mock import MagicMock, patch
+
+from sympy.physics.units import temperature
+
 from app.llm.openai_llm import _BaseLLM, OpenAIClient
 
 # --- Tests for _BaseLLM ---
@@ -58,7 +61,8 @@ def test_openaiclient_generate_success(mock_openai_cls, mock_openai_client):
     assert result == "mocked response"
     mock_openai_client.chat.completions.create.assert_called_once_with(
         model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": "test prompt"}]
+        messages=[{"role": "user", "content": "test prompt"}],
+        temperature=0
     )
 
 
